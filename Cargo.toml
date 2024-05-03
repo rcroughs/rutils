@@ -1,0 +1,14 @@
+[package]
+name = "rutils"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+[[bin]]
+name = "cat"
+path = "src/cat.rs"
+
+[[bin]]
+name = "ls"
+path = "src/ls.rs"
