@@ -1,4 +1,5 @@
-use std::{env, ffi::OsStr, fs::{self, Metadata, Permissions}, io, os::unix::fs::PermissionsExt, path::PathBuf, process::exit, str::FromStr};
+use std::{env, ffi::OsStr, fs::{self, Metadata, Permissions}, io, os::{linux::fs::MetadataExt, unix::fs::PermissionsExt}, path::PathBuf, process::exit, str::FromStr};
+use nix::{libc::{group, user}, unistd::{Gid, Group, Uid, User}};
 
 struct Params {
     list: bool,
@@ -29,7 +30,7 @@ fn parse_args() -> Params {
     return params;
 }
 
-fn show_metadata(metadata: Metadata) {
+fn show_metadata(metadata: &Metadata) {
     if metadata.is_dir() {
         print!("d")
     } else {
@@ -38,12 +39,11 @@ fn show_metadata(metadata: Metadata) {
     let mode : u32 = metadata.permissions().mode();
     for i in (0..9).rev() {
         if mode & (1 << i) != 0 {
-            if i % 3 == 0 {
-                print!("x")
-            } else if i % 3 == 1 {
-                print!("w")
-            } else {
-                print!("r")
+            match i % 3 {
+                0 => print!("x"),
+                1 => print!("w"),
+                2 => print!("r"),
+                _ => print!("-")
             }
         } else {
             print!("-")
@@ -52,11 +52,21 @@ fn show_metadata(metadata: Metadata) {
     print!(" ");
 }
 
+fn show_user(metadata: &Metadata) {
+    let user_id: u32 = metadata.st_uid();
+    let group_id: u32 = metadata.st_gid();
+    let user : User = User::from_uid(Uid::from_raw(user_id)).unwrap().unwrap();
+    let group : Group = Group::from_gid(Gid::from_raw(group_id)).unwrap().unwrap();
+    print!("{} {} ", user.name, group.name);
+}
+
 fn show_elements(elements: Vec<PathBuf>, all: bool, list: bool) {
     for element in elements {
         if !element.file_name().unwrap().to_str().unwrap().starts_with(".") || all {
             if list {
-                show_metadata(element.metadata().unwrap());
+                let metadata: Metadata = element.metadata().unwrap();
+                show_metadata(&metadata);
+                show_user(&metadata);
             }
             if element.metadata().unwrap().is_dir() {
                 print!("\x1b[94m");
@@ -64,9 +74,7 @@ fn show_elements(elements: Vec<PathBuf>, all: bool, list: bool) {
             let s : &OsStr = element.file_name().unwrap();
             print!("{}", s.to_str().unwrap());
             print!("\x1b[0m  ");
-        }
-        if list {
-            println!();
+            if list { println!() };
         }
     }
     print!("\n")
