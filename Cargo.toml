@@ -13,3 +13,7 @@ path = "src/cat.rs"
 [[bin]]
 name = "ls"
 path = "src/ls.rs"
+
+[[bin]]
+name = "wc"
+path = "src/wc.rs"

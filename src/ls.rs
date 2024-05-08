@@ -1,5 +1,5 @@
-use std::{env, ffi::OsStr, fs::{self, Metadata, Permissions}, io, os::{linux::fs::MetadataExt, unix::fs::PermissionsExt}, path::PathBuf, process::exit, str::FromStr};
-use nix::{libc::{group, user}, unistd::{Gid, Group, Uid, User}};
+use std::{env, ffi::OsStr, fs::{self, Metadata}, io, os::{linux::fs::MetadataExt, unix::fs::PermissionsExt}, path::PathBuf, process::exit};
+use nix::unistd::{Gid, Group, Uid, User};
 
 struct Params {
     list: bool,
@@ -60,6 +60,10 @@ fn show_user(metadata: &Metadata) {
     print!("{} {} ", user.name, group.name);
 }
 
+fn show_file_size(metadata: &Metadata) {
+    print!("{} ", metadata.st_size().to_string());
+}
+
 fn show_elements(elements: Vec<PathBuf>, all: bool, list: bool) {
     for element in elements {
         if !element.file_name().unwrap().to_str().unwrap().starts_with(".") || all {
@@ -67,6 +71,7 @@ fn show_elements(elements: Vec<PathBuf>, all: bool, list: bool) {
                 let metadata: Metadata = element.metadata().unwrap();
                 show_metadata(&metadata);
                 show_user(&metadata);
+                show_file_size(&metadata);
             }
             if element.metadata().unwrap().is_dir() {
                 print!("\x1b[94m");
