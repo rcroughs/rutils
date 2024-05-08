@@ -11,6 +11,10 @@ name = "cat"
 path = "src/cat.rs"
 
 [[bin]]
+name = "tac"
+path = "src/tac.rs"
+
+[[bin]]
 name = "ls"
 path = "src/ls.rs"
 
