@@ -21,3 +21,7 @@ path = "src/ls.rs"
 [[bin]]
 name = "wc"
 path = "src/wc.rs"
+
+[[bin]]
+name = "head"
+path = "src/head.rs"
